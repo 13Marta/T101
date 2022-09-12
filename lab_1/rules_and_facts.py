@@ -131,7 +131,7 @@ def division_by_conditions(rules):
                 every_item.append(rule)
             else:
                 not_one_item.append(rule)
-    return every_item, not_one_item, one_of_items
+    return [every_item, not_one_item, one_of_items]
 
 
 def check_and(every_item, facts):
@@ -150,15 +150,26 @@ def check_or(one_of_items, facts):
     return facts
 
 
+def check_not(not_one_item, facts):
+    key = 'not'
+    for rule in not_one_item:
+        if set(facts).isdisjoint(set(rule['if'][key])):
+            facts.append(rule['then'])
+    return facts
+
 
 # check facts vs rules
 time_start = time()
 
 # YOUR CODE HERE
-x = division_by_conditions(rules)
+division = division_by_conditions(rules)
+every_item = division[0]
+not_one_item = division[1]
+one_of_items = division[2]
+
 print(facts)
 print(division_by_conditions(rules))
-print(check_and(x, facts))
+print(check_and(every_item, facts))
 print(facts)
 
 print("%d facts validated vs %d rules in %f seconds" % (M, N, time() - time_start))
