@@ -113,7 +113,7 @@ N = 1000
 M = 100
 rules = generate_simple_rules(100, 4, N)
 facts = generate_rand_facts(100, M)
-
+set(facts)
 print("%d rules generated in %f seconds" % (N, time() - time_start))
 
 
@@ -131,14 +131,17 @@ def division_by_conditions(rules):
                 every_item.append(rule)
             else:
                 not_one_item.append(rule)
-    return every_item
+    return every_item, not_one_item, one_of_items
 
 
 def check_and(every_item, facts):
     key = 'and'
     for rule in every_item:
-        if all(item in rule['if'][key] for item in facts):
-            facts.append(rule['if']['then'])
+        if set(facts).issuperset(set(rule['if'][key])):
+            facts.append(rule['then'])
+    return facts
+
+
 
 
 # check facts vs rules
