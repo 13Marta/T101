@@ -142,6 +142,13 @@ def check_and(every_item, facts):
     return facts
 
 
+def check_or(one_of_items, facts):
+    key = 'or'
+    for rule in one_of_items:
+        if not set(facts).isdisjoint(set(rule['if'][key])):
+            facts.append(rule['then'])
+    return facts
+
 
 
 # check facts vs rules
