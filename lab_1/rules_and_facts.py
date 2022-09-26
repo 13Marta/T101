@@ -158,6 +158,27 @@ def check_not(not_one_item, facts):
     return facts
 
 
+def controdiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items):
+    for rule_not in not_one_item:
+        for rule_and in every_item:
+            if rule_not['if']['not'] == rule_and['if']['and']:
+                rule_not.pop(['if'])
+                rule_and.pop(['if'])
+        for rule_or in one_of_items:
+            if rule_not['if']['not'] == rule_or['if']['and']:
+                rule_not.pop(['if'])
+                rule_or.pop(['if'])
+
+
+def controdiction_not_a_b__not_b_a(not_one_item):
+    for rule_a in not_one_item:
+        for rule_b in not_one_item:
+            if not(set(rule_a['if']['not']).isdisjoint(set(rule_b['if']['not']))) and not (set(rule_b['if']['not']).isdisjoint(set(rule_a['if']['not']))):
+                rule_a.pop(['if'])
+                rule_b.pop(['if'])
+
+
+
 # check facts vs rules
 time_start = time()
 
