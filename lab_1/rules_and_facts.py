@@ -98,6 +98,7 @@ def generate_rand_facts(code_max, M):
     facts = []
     for i in range(0, M):
         facts.append(randint(0, code_max))
+    facts = list(set(facts))
     return facts
 
 
@@ -134,27 +135,22 @@ def division_by_conditions(rules):
     return [every_item, not_one_item, one_of_items]
 
 
-def check_and(every_item, facts):
-    key = 'and'
-    for rule in every_item:
-        if set(facts).issuperset(set(rule['if'][key])):
-            facts.append(rule['then'])
-    return facts
+def check_rules(every_item, not_one_item, one_of_items, facts):
 
+    for rule_and in every_item:
+        if set(facts).issuperset(set(rule_and['if']['and'])):
+            facts.append(rule_and['then'])
+            rule_and.pop(['if'])
 
-def check_or(one_of_items, facts):
-    key = 'or'
-    for rule in one_of_items:
-        if not set(facts).isdisjoint(set(rule['if'][key])):
-            facts.append(rule['then'])
-    return facts
+    for rule_or in one_of_items:
+        if not set(facts).isdisjoint(set(rule_or['if']['or'])):
+            facts.append(rule_or['then'])
+            rule_or.pop(['if'])
 
-
-def check_not(not_one_item, facts):
-    key = 'not'
-    for rule in not_one_item:
-        if set(facts).isdisjoint(set(rule['if'][key])):
-            facts.append(rule['then'])
+    for rule_not in not_one_item:
+        if set(facts).isdisjoint(set(rule_not['if']['not'])):
+            facts.append(rule_not['then'])
+            rule_not.pop(['if'])
     return facts
 
 
@@ -173,10 +169,10 @@ def controdiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items):
 def controdiction_not_a_b__not_b_a(not_one_item):
     for rule_a in not_one_item:
         for rule_b in not_one_item:
-            if not(set(rule_a['if']['not']).isdisjoint(set(rule_b['if']['not']))) and not (set(rule_b['if']['not']).isdisjoint(set(rule_a['if']['not']))):
+            if not (set(rule_a['if']['not']).isdisjoint(set(rule_b['if']['not']))) and not (
+                    set(rule_b['if']['not']).isdisjoint(set(rule_a['if']['not']))):
                 rule_a.pop(['if'])
                 rule_b.pop(['if'])
-
 
 
 # check facts vs rules
