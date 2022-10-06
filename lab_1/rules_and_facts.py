@@ -21,7 +21,7 @@ def generate_simple_rules(code_max, n_max, n_generate, log_oper_choice=["and", "
         }
         rules.append(rule)
     shuffle(rules)
-    return (rules)
+    return rules
 
 
 def generate_stairway_rules(code_max, n_max, n_generate, log_oper_choice=["and", "or", "not"]):
@@ -43,7 +43,7 @@ def generate_stairway_rules(code_max, n_max, n_generate, log_oper_choice=["and",
         }
         rules.append(rule)
     shuffle(rules)
-    return (rules)
+    return rules
 
 
 def generate_ring_rules(code_max, n_max, n_generate, log_oper_choice=["and", "or", "not"]):
@@ -63,7 +63,7 @@ def generate_ring_rules(code_max, n_max, n_generate, log_oper_choice=["and", "or
     }
     rules.append(rule)
     shuffle(rules)
-    return (rules)
+    return rules
 
 
 def generate_random_rules(code_max, n_max, n_generate, log_oper_choice=["and", "or", "not"]):
@@ -85,7 +85,7 @@ def generate_random_rules(code_max, n_max, n_generate, log_oper_choice=["and", "
         }
         rules.append(rule)
     shuffle(rules)
-    return (rules)
+    return rules
 
 
 def generate_seq_facts(M):
@@ -102,19 +102,12 @@ def generate_rand_facts(code_max, M):
     return facts
 
 
-# samples:
-print(generate_simple_rules(100, 4, 10))
-print(generate_random_rules(100, 4, 10))
-print(generate_stairway_rules(100, 4, 10, ["or"]))
-print(generate_ring_rules(100, 4, 10, ["or"]))
-
 # generate rules and facts and check time
 time_start = time()
-N = 1000
-M = 100
+N = 10000
+M = 1000
 rules = generate_simple_rules(100, 4, N)
 facts = generate_rand_facts(100, M)
-set(facts)
 print("%d rules generated in %f seconds" % (N, time() - time_start))
 
 
@@ -136,34 +129,38 @@ def division_by_conditions(rules):
 
 
 def check_rules(every_item, not_one_item, one_of_items, facts):
-
+    new_facts = []
     for rule_and in every_item:
         if set(facts).issuperset(set(rule_and['if']['and'])):
-            facts.append(rule_and['then'])
+            new_facts.append(rule_and['then'])
             rule_and.pop(['if'])
 
     for rule_or in one_of_items:
         if not set(facts).isdisjoint(set(rule_or['if']['or'])):
-            facts.append(rule_or['then'])
+            new_facts.append(rule_or['then'])
             rule_or.pop(['if'])
 
     for rule_not in not_one_item:
         if set(facts).isdisjoint(set(rule_not['if']['not'])):
-            facts.append(rule_not['then'])
+            new_facts.append(rule_not['then'])
             rule_not.pop(['if'])
-    return facts
+    return new_facts
 
 
 def controdiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items):
     for rule_not in not_one_item:
         for rule_and in every_item:
             if rule_not['if']['not'] == rule_and['if']['and']:
-                rule_not.pop(['if'])
-                rule_and.pop(['if'])
+                del rule_not
+                del rule_and
+                break
+
         for rule_or in one_of_items:
             if rule_not['if']['not'] == rule_or['if']['and']:
-                rule_not.pop(['if'])
-                rule_or.pop(['if'])
+                del rule_not
+                del rule_or
+                break
+
 
 
 def controdiction_not_a_b__not_b_a(not_one_item):
@@ -171,22 +168,25 @@ def controdiction_not_a_b__not_b_a(not_one_item):
         for rule_b in not_one_item:
             if not (set(rule_a['if']['not']).isdisjoint(set(rule_b['if']['not']))) and not (
                     set(rule_b['if']['not']).isdisjoint(set(rule_a['if']['not']))):
-                rule_a.pop(['if'])
-                rule_b.pop(['if'])
+                del rule_a
+                del rule_b
+                break
 
 
-# check facts vs rules
+def main():
+    every_item, not_one_item, one_of_items = division_by_conditions(rules)
+    controdiction_not_a_b__not_b_a(not_one_item)
+    while True:
+        controdiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items)
+        new_facts = check_rules(every_item, not_one_item, one_of_items, facts)
+        if set(facts).issuperset(set(new_facts)):
+            break
+        facts.extend(new_facts)
+        facts = list(set(facts))
+    return facts
+
 time_start = time()
 
-# YOUR CODE HERE
-division = division_by_conditions(rules)
-every_item = division[0]
-not_one_item = division[1]
-one_of_items = division[2]
-
-print(facts)
-print(division_by_conditions(rules))
-print(check_and(every_item, facts))
-print(facts)
-
+if __name__ == '__main__':
+    result = main()
 print("%d facts validated vs %d rules in %f seconds" % (M, N, time() - time_start))
