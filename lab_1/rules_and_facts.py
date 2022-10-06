@@ -1,8 +1,11 @@
+"""Creates knowledge base"""
+
 from random import choice, shuffle, randint
 from time import time
 
 
 def generate_simple_rules(code_max, n_max, n_generate, log_oper_choice=["and", "or", "not"]):
+    """generate_simple_rules"""
     rules = []
     for j in range(0, n_generate):
 
@@ -25,6 +28,7 @@ def generate_simple_rules(code_max, n_max, n_generate, log_oper_choice=["and", "
 
 
 def generate_stairway_rules(code_max, n_max, n_generate, log_oper_choice=["and", "or", "not"]):
+    """generate_stairway_rules"""
     rules = []
     for j in range(0, n_generate):
 
@@ -47,6 +51,7 @@ def generate_stairway_rules(code_max, n_max, n_generate, log_oper_choice=["and",
 
 
 def generate_ring_rules(code_max, n_max, n_generate, log_oper_choice=["and", "or", "not"]):
+    """generate_ring_rules"""
     rules = generate_stairway_rules(code_max, n_max, n_generate - 1, log_oper_choice)
     log_oper = choice(log_oper_choice)  # not means and-not (neither)
     if n_max < 2:
@@ -67,6 +72,7 @@ def generate_ring_rules(code_max, n_max, n_generate, log_oper_choice=["and", "or
 
 
 def generate_random_rules(code_max, n_max, n_generate, log_oper_choice=["and", "or", "not"]):
+    """generate_random_rules"""
     rules = []
     for j in range(0, n_generate):
 
@@ -89,12 +95,14 @@ def generate_random_rules(code_max, n_max, n_generate, log_oper_choice=["and", "
 
 
 def generate_seq_facts(M):
+    """generate_seq_facts"""
     facts = list(range(0, M))
     shuffle(facts)
     return facts
 
 
 def generate_rand_facts(code_max, M):
+    """generate_rand_facts"""
     facts = []
     for i in range(0, M):
         facts.append(randint(0, code_max))
@@ -108,6 +116,7 @@ def generate_rand_facts(code_max, M):
 # load and validate rules
 # YOUR CODE HERE
 def division_by_conditions(rules):
+    """Dividing the general list with rules into three and/not/or"""
     every_item = []
     not_one_item = []
     one_of_items = []
@@ -123,6 +132,16 @@ def division_by_conditions(rules):
 
 
 def check_rules(every_item, not_one_item, one_of_items, facts):
+    """
+            Searching new facts in rules
+                Params:
+                    every_item - list of all and_rules
+                    not_one_item - list of all not_rules
+                    one_of_items - list of all or_rules
+                    facts - list of all known facts
+                Returns:
+                    new_facts - list of new facts, added by checking rules
+        """
     new_facts = []
     for rule_and in every_item:
         if set(facts).issuperset(set(rule_and['if']['and'])):
@@ -141,7 +160,8 @@ def check_rules(every_item, not_one_item, one_of_items, facts):
     return new_facts
 
 
-def controdiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items):
+def contradiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items):
+    """resolves the contradiction like (a->b), (not a->b)"""
     for rule_not in not_one_item:
         for rule_and in every_item:
             if rule_not['if']['not'] == rule_and['if']['and']:
@@ -154,7 +174,8 @@ def controdiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items):
                 break
 
 
-def controdiction_not_a_b__not_b_a(not_one_item):
+def contradiction_not_a_b__not_b_a(not_one_item):
+    """resolves the contradiction like (not a->b), (not b->a)"""
     for rule_a in not_one_item:
         for rule_b in not_one_item:
             if not (set(rule_a['if']['not']).isdisjoint(set(rule_b['if']['not']))) and not (
@@ -165,6 +186,11 @@ def controdiction_not_a_b__not_b_a(not_one_item):
 
 
 def main():
+    """
+            Main func, where check contradictions and in cycle searches new facts
+            Returns:
+                facts - list of all facts in knowledge base
+    """
     time_start = time()
     N = 10000
     M = 1000
@@ -173,10 +199,10 @@ def main():
     print("%d rules generated in %f seconds" % (N, time() - time_start))
 
     every_item, not_one_item, one_of_items = division_by_conditions(rules)
-    controdiction_not_a_b__not_b_a(not_one_item)
+    contradiction_not_a_b__not_b_a(not_one_item)
 
     while True:
-        controdiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items)
+        contradiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items)
         new_facts = check_rules(every_item, not_one_item, one_of_items, facts)
         if set(facts).issuperset(set(new_facts)):
             break
