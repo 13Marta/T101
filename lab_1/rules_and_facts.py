@@ -103,12 +103,6 @@ def generate_rand_facts(code_max, M):
 
 
 # generate rules and facts and check time
-time_start = time()
-N = 10000
-M = 1000
-rules = generate_simple_rules(100, 4, N)
-facts = generate_rand_facts(100, M)
-print("%d rules generated in %f seconds" % (N, time() - time_start))
 
 
 # load and validate rules
@@ -133,17 +127,17 @@ def check_rules(every_item, not_one_item, one_of_items, facts):
     for rule_and in every_item:
         if set(facts).issuperset(set(rule_and['if']['and'])):
             new_facts.append(rule_and['then'])
-            rule_and.pop(['if'])
+            del rule_and
 
     for rule_or in one_of_items:
         if not set(facts).isdisjoint(set(rule_or['if']['or'])):
             new_facts.append(rule_or['then'])
-            rule_or.pop(['if'])
+            del rule_or
 
     for rule_not in not_one_item:
         if set(facts).isdisjoint(set(rule_not['if']['not'])):
             new_facts.append(rule_not['then'])
-            rule_not.pop(['if'])
+            del rule_not
     return new_facts
 
 
@@ -151,16 +145,13 @@ def controdiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items):
     for rule_not in not_one_item:
         for rule_and in every_item:
             if rule_not['if']['not'] == rule_and['if']['and']:
-                del rule_not
                 del rule_and
-                break
 
         for rule_or in one_of_items:
-            if rule_not['if']['not'] == rule_or['if']['and']:
+            if rule_not['if']['not'] == rule_or['if']['or']:
                 del rule_not
                 del rule_or
                 break
-
 
 
 def controdiction_not_a_b__not_b_a(not_one_item):
@@ -174,8 +165,16 @@ def controdiction_not_a_b__not_b_a(not_one_item):
 
 
 def main():
+    time_start = time()
+    N = 10000
+    M = 1000
+    rules = generate_simple_rules(100, 4, N)
+    facts = generate_rand_facts(100, M)
+    print("%d rules generated in %f seconds" % (N, time() - time_start))
+
     every_item, not_one_item, one_of_items = division_by_conditions(rules)
     controdiction_not_a_b__not_b_a(not_one_item)
+
     while True:
         controdiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items)
         new_facts = check_rules(every_item, not_one_item, one_of_items, facts)
@@ -185,8 +184,10 @@ def main():
         facts = list(set(facts))
     return facts
 
+
 time_start = time()
 
 if __name__ == '__main__':
-    result = main()
-print("%d facts validated vs %d rules in %f seconds" % (M, N, time() - time_start))
+    print(main())
+
+print("%d facts validated vs %d rules in %f seconds" % (1000, 10000, time() - time_start))
