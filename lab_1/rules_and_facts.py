@@ -200,20 +200,19 @@ def main():
 
     every_item, not_one_item, one_of_items = division_by_conditions(rules)
     contradiction_not_a_b__not_b_a(not_one_item)
-
+    contradiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items)
+    time_start = time()
     while True:
-        contradiction_a_to_b__not_a_to_b(every_item, not_one_item, one_of_items)
         new_facts = check_rules(every_item, not_one_item, one_of_items, facts)
         if set(facts).issuperset(set(new_facts)):
             break
         facts.extend(new_facts)
         facts = list(set(facts))
+    print("%d facts validated vs %d rules in %f seconds" % (1000, 10000, time() - time_start))
     return facts
 
-
-time_start = time()
 
 if __name__ == '__main__':
     print(main())
 
-print("%d facts validated vs %d rules in %f seconds" % (1000, 10000, time() - time_start))
+
